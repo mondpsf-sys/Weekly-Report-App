@@ -160,7 +160,6 @@ const blank = key => ({
   problems:{d:''}, proposals:{d:''}
 }[key]);
 
-/* ============ ตัวช่วย ============ */
 const $ = s => document.querySelector(s);
 const t = k => (I18N[k] && I18N[k][lang]) || k;
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -177,7 +176,7 @@ function toast(msg){
 
 /* ============ สถานะ ============ */
 let lang = store.get('wr_lang');
-if(!['lo','en','th'].includes(lang)) lang = 'lo';           // เริ่มต้นเป็นภาษาลาวเสมอ
+if(!['lo','en'].includes(lang)) lang = 'lo';           // เริ่มต้นเป็นภาษาลาวเสมอ
 let user = store.get('wr_user') || '';
 if(!CFG.USERS.includes(user)) user = '';
 let screen = user ? 'form' : 'login';
