@@ -1,6 +1,6 @@
 {
-  "name": "Weekly Report - ທະນາຄານເຊື້ອພັນ",
-  "short_name": "Weekly Report",
+  "name": "Lao Genebank",
+  "short_name": "Lao Genebank",
   "description": "ລະບົບລາຍງານປະຈຳອາທິດ / Weekly Report System",
   "start_url": "./index.html",
   "scope": "./",
