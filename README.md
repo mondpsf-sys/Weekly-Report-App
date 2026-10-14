@@ -35,3 +35,10 @@
 - ถ้าเครือข่ายหลุดแล้วกดส่งซ้ำโดยไม่แก้ข้อมูล ระบบกันไม่ให้บันทึกซ้ำ (ใช้คอลัมน์ "ລະຫັດການສົ່ງ")
 - ใช้ปุ่มกรอง (Filter) ที่หัวตารางเพื่อดูเฉพาะเดือน/อาทิตย์/หมวดที่ต้องการ
 - แท็บ "ສະຖານະ" นับจากคอลัมน์ ปี/เดือน/อาทิตย์ ว่าใครส่งแล้ว
+https://script.google.com/macros/s/AKfycbyUQZt1BFLkD1oeCDGeq-EcYAZelJDDO-RaL43-Zu4gH3NLBrtz_Khw7KM3TuLeMkIX/exec
+https://script.google.com/macros/s/AKfycbyUQZt1BFLkD1oeCDGeq-EcYAZelJDDO-RaL43-Zu4gH3NLBrtz_Khw7KM3TuLeMkIX/exec
+https://script.google.com/macros/library/d/1htSJ9L5InYZve3-EkFvT6u_YqelS_gMbtuNdCRlyGjOW3JhhK1m13bTU/2
+
+git add .
+git commit -m "add PWA install support"
+git push
