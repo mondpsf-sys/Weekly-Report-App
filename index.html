@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Weekly Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;700&family=Noto+Sans+Thai:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#0f766e; --primary-dark:#115e59; --bg:#f1f5f4; --card:#fff;
+    --text:#1f2937; --muted:#6b7280; --line:#d1d5db; --danger:#dc2626;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:'Noto Sans Lao','Noto Sans Thai','Inter',system-ui,sans-serif;font-size:16px;line-height:1.5;
+    overscroll-behavior-y:contain; /* กัน pull-to-refresh บนมือถือ */}
+  body{min-height:100vh;min-height:100dvh}
+  .topbar{position:sticky;top:0;z-index:10;background:var(--primary);color:#fff;
+    display:flex;justify-content:space-between;align-items:center;gap:8px;
+    padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top))}
+  .topbar .who{font-size:.85rem;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .langs{display:flex;gap:6px;flex-shrink:0}
+  .langs button{border:1px solid rgba(255,255,255,.6);background:transparent;color:#fff;
+    border-radius:999px;padding:4px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+  .langs button.active{background:#fff;color:var(--primary);font-weight:700}
+  .wrap{max-width:640px;margin:0 auto;padding:16px 14px calc(40px + env(safe-area-inset-bottom))}
+  .card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:16px}
+  h1{margin:0;text-align:center;font-size:1.35rem;color:var(--primary-dark)}
+  h2{margin:0 0 4px;font-size:1.05rem;color:var(--primary-dark)}
+  .sub{margin:4px 0 0;text-align:center;color:var(--muted);font-size:.95rem}
+  label.lbl{display:block;margin:12px 0 4px;font-size:.88rem;color:var(--muted);font-weight:600}
+  select,input[type=text],textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;
+    padding:11px 12px;font:inherit;background:#fff;color:var(--text);outline:none;appearance:none;-webkit-appearance:none}
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'><path d='M1 1l6 6 6-6' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+  textarea{resize:vertical;min-height:84px}
+  select:focus,input:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(15,118,110,.15)}
+  input[readonly]{background:#eef2f1;color:var(--text);font-weight:600}
+  .period{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .period label.lbl{margin-top:0}
+  .item{border:1.5px dashed var(--line);border-radius:12px;padding:10px 12px 12px;margin-top:12px;background:#fafcfb}
+  .item-h{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--muted);font-weight:600}
+  .item label.lbl{margin-top:8px}
+  .rm{border:0;background:transparent;color:var(--danger);font:inherit;font-size:.85rem;cursor:pointer;padding:4px 8px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:13px;font:inherit;font-size:1rem;font-weight:700;cursor:pointer}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:disabled{opacity:.6}
+  .btn-add{margin-top:12px;background:#e6f4f2;color:var(--primary-dark);border:1.5px solid #b7dcd7;padding:11px}
+  .btn-out{background:transparent;color:var(--muted);border:1.5px solid var(--line);margin-top:10px;font-weight:600}
+  .logo-circle{width:64px;height:64px;border-radius:50%;background:var(--primary);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:30px;margin:6px auto 14px}
+  .org{margin:0 0 2px;text-align:center;font-size:1.1rem;font-weight:700;color:var(--primary-dark)}
+  .saved{text-align:center;font-size:.8rem;color:var(--muted);height:1.2em;margin:-6px 0 10px}
+  .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);
+    background:#111827;color:#fff;padding:10px 16px;border-radius:999px;font-size:.9rem;max-width:90%;
+    text-align:center;z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+  .toast.show{opacity:1}
+  .big-ok{font-size:56px;text-align:center;margin:10px 0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+/* ============ ตั้งค่า (แก้ตรงนี้) ============ */
+const CFG = {
+  SCRIPT_URL: 'PASTE_APPS_SCRIPT_URL_HERhttps://script.google.com/macros/s/AKfycbyUQZt1BFLkD1oeCDGeq-EcYAZelJDDO-RaL43-Zu4gH3NLBrtz_Khw7KM3TuLeMkIX/execE',   // URL ของ Google Apps Script (Web app)
+  DEFAULT_YEAR: 2026,
+  ORG: {                                       // ชื่อหน่วยงาน/ห้องการ แสดงเป็นหัวหน้า
+    lo: 'ທະນາຄານເຊື້ອພັນ',
+    en: 'Lao Genebank',
+    th: 'ธนาคารเชื้อพันธุ์พืช'
+  },
+  USERS: ['ກູ່ຄຳ','ເຂັມຄຳ','ຄຳສອນ','ຄຳປະດິດ','ແກ້ວອຸດອນ','ຄູນ','ບຸນຊູ','ອາລິດສະລາ','ເລ່ເມີ້ນ','ພອນທະວີ'],
+  YEARS: [2025,2026,2027,2028,2029,2030]
+};
+
+/* ============ ข้อความ 3 ภาษา ============ */
+const I18N = {
+  appSub:{lo:'ລະບົບລາຍງານປະຈຳອາທິດ',en:'Weekly Report System',th:'ระบบรายงานประจำสัปดาห์'},
+  selName:{lo:'ເລືອກຊື່ຂອງທ່ານ',en:'Select your name',th:'เลือกชื่อของคุณ'},
+  selPh:{lo:'-- ເລືອກຊື່ --',en:'-- Select name --',th:'-- เลือกชื่อ --'},
+  enter:{lo:'ເຂົ້າໃຊ້ງານ',en:'Enter',th:'เข้าใช้งาน'},
+  needName:{lo:'ກະລຸນາເລືອກຊື່ກ່ອນ',en:'Please select your name first',th:'กรุณาเลือกชื่อก่อน'},
+  repTitle:{lo:'ລາຍງານປະຈຳອາທິດ',en:'Weekly Report',th:'รายงานประจำสัปดาห์'},
+  week:{lo:'ອາທິດທີ',en:'Week',th:'สัปดาห์ที่'},
+  month:{lo:'ເດືອນ',en:'Month',th:'เดือน'},
+  year:{lo:'ປີ',en:'Year',th:'ปี'},
+  fullName:{lo:'ຊື່ ແລະ ນາມສະກຸນ',en:'Full name',th:'ชื่อ-นามสกุล'},
+  sec_done:{lo:'1. ສະຫຼຸບຜົນງານທີ່ເຮັດສຳເລັດໃນອາທິດນີ້',en:'1. Accomplishments this week',th:'1. สรุปผลงานที่ทำสำเร็จในสัปดาห์นี้'},
+  sec_doing:{lo:'2. ວຽກທີ່ກຳລັງດຳເນີນຢູ່',en:'2. Work in progress',th:'2. งานที่อยู่ระหว่างดำเนินการ'},
+  sec_next:{lo:'3. ແຜນການດຳເນີນງານອາທິດຕໍ່ໄປ',en:'3. Plan for next week',th:'3. แผนการดำเนินงานสัปดาห์ถัดไป'},
+  sec_problems:{lo:'4. ບັນຫາ ແລະ ອຸປະສັກ',en:'4. Problems and obstacles',th:'4. ปัญหาและอุปสรรค'},
+  sec_proposals:{lo:'5. ຂໍ້ສະເໜີ',en:'5. Proposals / support needed',th:'5. ข้อเสนอ / สิ่งที่ต้องการให้ช่วยเหลือ'},
+  taskName:{lo:'ຊື່ວຽກ ຫຼື ໂຄງການ',en:'Task / project name',th:'ชื่องาน หรือโครงการ'},
+  detailDone:{lo:'ລາຍລະອຽດ ແລະ ຄວາມຄືບໜ້າທີ່ເຮັດແລ້ວ',en:'Details and what has been completed',th:'รายละเอียดและสิ่งที่ทำเสร็จแล้ว'},
+  progress:{lo:'ຄວາມຄືບໜ້າ',en:'Progress',th:'ความคืบหน้า'},
+  planDetail:{lo:'ລາຍລະອຽດແຜນງານ',en:'Plan details',th:'รายละเอียดแผนงาน'},
+  priority:{lo:'ລຳດັບຄວາມສຳຄັນ',en:'Priority',th:'ลำดับความสำคัญ'},
+  high:{lo:'ສູງ',en:'High',th:'สูง'},
+  mid:{lo:'ກາງ',en:'Medium',th:'กลาง'},
+  low:{lo:'ຕ່ຳ',en:'Low',th:'ต่ำ'},
+  problemLbl:{lo:'ບັນຫາ / ອຸປະສັກ',en:'Problem / obstacle',th:'ปัญหา / อุปสรรค'},
+  problemPh:{lo:'ອະທິບາຍບັນຫາ ຫຼື ອຸປະສັກທີ່ພົບ ແລະ ເລື່ອງທີ່ຕ້ອງການໃຫ້ຊ່ວຍຕັດສິນໃຈ',
+             en:'Describe the problem or obstacle, and any decision you need',
+             th:'อธิบายปัญหา/อุปสรรคที่พบ และเรื่องที่ต้องการให้ช่วยตัดสินใจ'},
+  proposalLbl:{lo:'ຂໍ້ສະເໜີ',en:'Proposal',th:'ข้อเสนอ'},
+  proposalPh:{lo:'ສິ່ງທີ່ຕ້ອງການໃຫ້ຊ່ວຍເຫຼືອ ຫຼື ອຸປະກອນທີ່ຕ້ອງການເພີ່ມ',
+              en:'What help or additional equipment do you need?',
+              th:'สิ่งที่ต้องการให้ช่วยเหลือ หรืออุปกรณ์ที่ต้องการเพิ่ม'},
+  add:{lo:'ເພີ່ມລາຍການ',en:'Add item',th:'เพิ่มรายการ'},
+  remove:{lo:'ລຶບ',en:'Remove',th:'ลบ'},
+  item:{lo:'ລາຍການທີ',en:'Item',th:'รายการที่'},
+  submit:{lo:'ສົ່ງລາຍງານ',en:'Submit report',th:'ส่งรายงาน'},
+  confirm:{lo:'ຢືນຢັນການສົ່ງລາຍງານບໍ?',en:'Submit this report?',th:'ยืนยันการส่งรายงานหรือไม่?'},
+  sending:{lo:'ກຳລັງສົ່ງ...',en:'Sending...',th:'กำลังส่ง...'},
+  okTitle:{lo:'ສົ່ງລາຍງານສຳເລັດແລ້ວ',en:'Report submitted successfully',th:'ส่งรายงานสำเร็จแล้ว'},
+  okSub:{lo:'ຂອບໃຈ ຂໍ້ມູນຂອງທ່ານຖືກບັນທຶກແລ້ວ',en:'Thank you. Your report has been recorded.',th:'ขอบคุณ ระบบบันทึกรายงานของคุณแล้ว'},
+  fail:{lo:'ສົ່ງບໍ່ສຳເລັດ ຂໍ້ມູນຂອງທ່ານຍັງຢູ່ ກະລຸນາລອງໃໝ່',
+        en:'Submit failed. Your data is still saved, please try again.',
+        th:'ส่งไม่สำเร็จ ข้อมูลของคุณยังอยู่ กรุณาลองใหม่'},
+  saved:{lo:'ບັນທຶກຮ່າງອັດຕະໂນມັດແລ້ວ',en:'Draft saved automatically',th:'บันทึกร่างอัตโนมัติแล้ว'},
+  logout:{lo:'ອອກຈາກລະບົບ',en:'Log out',th:'ออกจากระบบ'},
+  logoutConfirm:{lo:'ອອກຈາກລະບົບບໍ? ຮ່າງຂອງທ່ານຍັງຖືກເກັບໄວ້',en:'Log out? Your draft will be kept.',th:'ออกจากระบบหรือไม่? ร่างของคุณจะยังถูกเก็บไว้'},
+  newReport:{lo:'ສ້າງລາຍງານໃໝ່',en:'New report',th:'สร้างรายงานใหม่'},
+  empty:{lo:'ກະລຸນາຕື່ມຢ່າງໜ້ອຍໜຶ່ງລາຍການ',en:'Please fill in at least one item',th:'กรุณากรอกอย่างน้อยหนึ่งรายการ'},
+  cfgMissing:{lo:'ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ URL ຂອງ Google Sheet',en:'Google Sheet URL is not configured yet',th:'ยังไม่ได้ตั้งค่า URL ของ Google Sheet'},
+  backLocked:{lo:'ຂໍ້ມູນຖືກບັນທຶກໄວ້ແລ້ວ ບໍ່ສາມາດຍ້ອນກັບໄດ້',en:'Your data is saved. Going back is disabled.',th:'ข้อมูลถูกบันทึกไว้แล้ว ไม่สามารถย้อนกลับได้'}
+};
+const LANGS = [['lo','ລາວ'],['en','EN'],['th','ไทย']];
+
+/* ============ โครงสร้างหมวดข้อมูล ============ */
+const SECTIONS = [
+  {key:'done', fields:[
+    {k:'t',label:'taskName',type:'input'},
+    {k:'d',label:'detailDone',type:'textarea'}]},
+  {key:'doing', fields:[
+    {k:'t',label:'taskName',type:'input'},
+    {k:'p',label:'progress',type:'textarea'}]},
+  {key:'next', fields:[
+    {k:'t',label:'taskName',type:'input'},
+    {k:'d',label:'planDetail',type:'textarea'},
+    {k:'pr',label:'priority',type:'priority'}]},
+  {key:'problems', fields:[
+    {k:'d',label:'problemLbl',ph:'problemPh',type:'textarea'}]},
+  {key:'proposals', fields:[
+    {k:'d',label:'proposalLbl',ph:'proposalPh',type:'textarea'}]}
+];
+const blank = key => ({
+  done:{t:'',d:''}, doing:{t:'',p:''}, next:{t:'',d:'',pr:'mid'},
+  problems:{d:''}, proposals:{d:''}
+}[key]);
+
+/* ============ ตัวช่วย ============ */
+const $ = s => document.querySelector(s);
+const t = k => (I18N[k] && I18N[k][lang]) || k;
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+let toastTimer;
+function toast(msg){
+  const el = $('#toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>el.classList.remove('show'), 2600);
+}
+
+/* ============ สถานะ ============ */
+let lang = store.get('wr_lang');
+if(!['lo','en','th'].includes(lang)) lang = 'lo';           // เริ่มต้นเป็นภาษาลาวเสมอ
+let user = store.get('wr_user') || '';
+if(!CFG.USERS.includes(user)) user = '';
+let screen = user ? 'form' : 'login';
+let data = null;
+let pendingUser = '';
+let busy = false;
+
+function newData(){
+  const d = new Date();
+  const o = { week: Math.min(4, Math.ceil(d.getDate()/7)), month: d.getMonth()+1, year: CFG.DEFAULT_YEAR };
+  SECTIONS.forEach(s => o[s.key] = [blank(s.key)]);
+  return o;
+}
+function loadDraft(u){
+  try{
+    const raw = store.get('wr_draft_'+u);
+    if(!raw) return null;
+    const d = JSON.parse(raw);
+    SECTIONS.forEach(s => { if(!Array.isArray(d[s.key]) || !d[s.key].length) d[s.key] = [blank(s.key)]; });
+    return d;
+  }catch(e){ return null; }
+}
+let saveTimer;
+function saveDraft(now){
+  if(!user || !data) return;
+  const run = () => { store.set('wr_draft_'+user, JSON.stringify(data)); const el=$('#savedInfo'); if(el) el.textContent = '✓ '+t('saved'); };
+  clearTimeout(saveTimer);
+  if(now) run(); else saveTimer = setTimeout(run, 300);
+}
+if(user) data = loadDraft(user) || newData();
+
+/* ============ วาดหน้าจอ ============ */
+function langBar(){
+  return `<div class="langs">${LANGS.map(([c,n])=>`<button type="button" data-act="lang" data-v="${c}" class="${c===lang?'active':''}">${n}</button>`).join('')}</div>`;
+}
+function renderLogin(){
+  return `
+  <div class="topbar"><span></span>${langBar()}</div>
+  <div class="wrap">
+    <div class="card" style="margin-top:24px">
+      <div class="logo-circle">📋</div>
+      <p class="org">${esc(CFG.ORG[lang])}</p>
+      <h1>${t('repTitle')}</h1>
+      <p class="sub">${t('appSub')}</p>
+      <label class="lbl">${t('selName')}</label>
+      <select id="userSel">
+        <option value="">${t('selPh')}</option>
+        ${CFG.USERS.map(u=>`<option value="${esc(u)}" ${u===pendingUser?'selected':''}>${esc(u)}</option>`).join('')}
+      </select>
+      <div style="height:16px"></div>
+      <button type="button" class="btn btn-primary" data-act="enter">${t('enter')}</button>
+    </div>
+  </div>`;
+}
+function fieldHTML(sec,i,f,it){
+  const base = `data-sec="${sec.key}" data-i="${i}" data-k="${f.k}"`;
+  const lbl = `<label class="lbl">${t(f.label)}</label>`;
+  if(f.type==='input')
+    return `${lbl}<input type="text" ${base} value="${esc(it[f.k])}" autocomplete="off">`;
+  if(f.type==='textarea')
+    return `${lbl}<textarea ${base} rows="3" placeholder="${f.ph?esc(t(f.ph)):''}">${esc(it[f.k])}</textarea>`;
+  if(f.type==='priority')
+    return `${lbl}<select ${base}>${['high','mid','low'].map(v=>`<option value="${v}" ${it[f.k]===v?'selected':''}>${t(v)}</option>`).join('')}</select>`;
+  return '';
+}
+function sectionHTML(sec){
+  const list = data[sec.key];
+  return `
+  <div class="card">
+    <h2>${t('sec_'+sec.key)}</h2>
+    ${list.map((it,i)=>`
+      <div class="item">
+        <div class="item-h"><span>${t('item')} ${i+1}</span>
+          ${list.length>1?`<button type="button" class="rm" data-act="rm" data-sec="${sec.key}" data-i="${i}">✕ ${t('remove')}</button>`:''}
+        </div>
+        ${sec.fields.map(f=>fieldHTML(sec,i,f,it)).join('')}
+      </div>`).join('')}
+    <button type="button" class="btn btn-add" data-act="add" data-sec="${sec.key}">＋ ${t('add')}</button>
+  </div>`;
+}
+function renderForm(){
+  const wk = [1,2,3,4].map(n=>`<option value="${n}" ${+data.week===n?'selected':''}>${n}</option>`).join('');
+  const mo = Array.from({length:12},(_,i)=>i+1).map(n=>`<option value="${n}" ${+data.month===n?'selected':''}>${n}</option>`).join('');
+  const years = CFG.YEARS.includes(+data.year) ? CFG.YEARS : [...CFG.YEARS, +data.year].sort();
+  const yr = years.map(n=>`<option value="${n}" ${+data.year===n?'selected':''}>${n}</option>`).join('');
+  return `
+  <div class="topbar"><span class="who">👤 ${esc(user)}</span>${langBar()}</div>
+  <div class="wrap">
+    <div class="card">
+      <p class="org">${esc(CFG.ORG[lang])}</p>
+      <h1>${t('repTitle')}</h1>
+      <div class="period" style="margin-top:14px">
+        <div><label class="lbl">${t('week')}</label><select data-sec="period" data-k="week">${wk}</select></div>
+        <div><label class="lbl">${t('month')}</label><select data-sec="period" data-k="month">${mo}</select></div>
+        <div><label class="lbl">${t('year')}</label><select data-sec="period" data-k="year">${yr}</select></div>
+      </div>
+      <label class="lbl">${t('fullName')}</label>
+      <input type="text" value="${esc(user)}" readonly>
+    </div>
+    <div class="saved" id="savedInfo"></div>
+    ${SECTIONS.map(sectionHTML).join('')}
+    <button type="button" class="btn btn-primary" id="submitBtn" data-act="submit">${t('submit')}</button>
+    <button type="button" class="btn btn-out" data-act="logout">${t('logout')}</button>
+  </div>`;
+}
+function renderDone(){
+  return `
+  <div class="topbar"><span class="who">👤 ${esc(user)}</span>${langBar()}</div>
+  <div class="wrap"><div class="card" style="margin-top:24px">
+    <div class="big-ok">✅</div>
+    <h1>${t('okTitle')}</h1>
+    <p class="sub">${t('okSub')}</p>
+    <div style="height:18px"></div>
+    <button type="button" class="btn btn-primary" data-act="newreport">${t('newReport')}</button>
+    <button type="button" class="btn btn-out" data-act="logout">${t('logout')}</button>
+  </div></div>`;
+}
+function render(){
+  document.documentElement.lang = lang;
+  document.title = t('repTitle');
+  const y = window.scrollY;
+  $('#app').innerHTML = screen==='login' ? renderLogin() : screen==='done' ? renderDone() : renderForm();
+  if(screen==='form'){ window.scrollTo(0,y); }
+}
+
+/* ============ ล็อกปุ่มย้อนกลับ / รีเฟรช ============ */
+function lockNav(){
+  history.pushState({lock:1}, '', location.href);
+  history.pushState({lock:2}, '', location.href);
+}
+window.addEventListener('popstate', () => {
+  if(user){ history.pushState({lock:3}, '', location.href); toast(t('backLocked')); }
+});
+window.addEventListener('beforeunload', e => {
+  if(user && screen==='form'){ saveDraft(true); e.preventDefault(); e.returnValue=''; }
+});
+window.addEventListener('pagehide', () => saveDraft(true));
+document.addEventListener('visibilitychange', () => { if(document.hidden) saveDraft(true); });
+document.addEventListener('keydown', e => {
+  if(!user) return;
+  const k = e.key.toLowerCase();
+  if(e.key==='F5' || ((e.ctrlKey||e.metaKey) && k==='r')) e.preventDefault();
+});
+
+/* ============ เหตุการณ์ ============ */
+const app = $('#app');
+app.addEventListener('input', e => {
+  const el = e.target;
+  if(el.id==='userSel'){ pendingUser = el.value; return; }
+  const sec = el.dataset.sec; if(!sec || !data) return;
+  data.sid = null;                       // แก้ข้อมูลแล้ว = เป็นการส่งใหม่ (รหัสใหม่)
+  if(sec==='period'){ data[el.dataset.k] = +el.value; }
+  else { data[sec][+el.dataset.i][el.dataset.k] = el.value; }
+  saveDraft();
+});
+app.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const act = b.dataset.act;
+  if(act==='lang'){
+    lang = b.dataset.v; store.set('wr_lang', lang);
+    if(screen==='login'){ pendingUser = ($('#userSel')||{}).value || pendingUser; }
+    render();
+  }
+  else if(act==='enter'){
+    const v = ($('#userSel')||{}).value || pendingUser;
+    if(!v || !CFG.USERS.includes(v)){ toast(t('needName')); return; }
+    user = v; store.set('wr_user', user);
+    data = loadDraft(user) || newData();
+    screen = 'form'; lockNav(); render(); window.scrollTo(0,0);
+  }
+  else if(act==='add'){
+    data[b.dataset.sec].push(blank(b.dataset.sec)); saveDraft(true); render();
+  }
+  else if(act==='rm'){
+    const list = data[b.dataset.sec];
+    if(list.length>1){ list.splice(+b.dataset.i,1); saveDraft(true); render(); }
+  }
+  else if(act==='submit'){ submit(); }
+  else if(act==='logout'){
+    if(!confirm(t('logoutConfirm'))) return;
+    saveDraft(true);
+    user = ''; data = null; pendingUser = ''; store.del('wr_user');
+    screen = 'login'; render();
+  }
+  else if(act==='newreport'){
+    data = newData(); screen = 'form'; render(); window.scrollTo(0,0);
+  }
+});
+
+/* ============ ส่งรายงาน ============ */
+async function submit(){
+  if(busy) return;
+  const clean = key => data[key].filter(it => Object.entries(it).some(([k,v]) => k!=='pr' && String(v).trim()));
+  const payload = {
+    name: user, year: +data.year, month: +data.month, week: +data.week, lang,
+    done: clean('done'), doing: clean('doing'), next: clean('next'),
+    problems: clean('problems'), proposals: clean('proposals')
+  };
+  if(!data.sid) data.sid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36)+Math.random().toString(36).slice(2));
+  payload.sid = data.sid;
+  const total = ['done','doing','next','problems','proposals'].reduce((n,k)=>n+payload[k].length,0);
+  if(!total){ toast(t('empty')); return; }
+  if(!confirm(t('confirm'))) return;
+  if(CFG.SCRIPT_URL.startsWith('PASTE_')){ toast(t('cfgMissing')); return; }
+  busy = true;
+  const btn = $('#submitBtn'); if(btn){ btn.disabled = true; btn.textContent = t('sending'); }
+  const ctl = new AbortController();
+  const to = setTimeout(()=>ctl.abort(), 25000);
+  try{
+    saveDraft(true);
+    const r = await fetch(CFG.SCRIPT_URL, { method:'POST', body: JSON.stringify(payload), signal: ctl.signal });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error || 'failed');
+    store.del('wr_draft_'+user);             // ลบร่างเมื่อส่งสำเร็จแล้วเท่านั้น
+    data = null; screen = 'done'; render(); window.scrollTo(0,0);
+  }catch(err){
+    toast(t('fail'));
+    const b2 = $('#submitBtn'); if(b2){ b2.disabled = false; b2.textContent = t('submit'); }
+  }finally{
+    clearTimeout(to); busy = false;
+  }
+}
+
+/* ============ เริ่มทำงาน ============ */
+if(user) lockNav();
+render();
+</script>
+</body>
+</html>
