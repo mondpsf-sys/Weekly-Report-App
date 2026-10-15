@@ -6,10 +6,9 @@
 <meta name="theme-color" content="#0f766e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-title" content="Weekly Report">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Weekly Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -75,10 +74,13 @@
 /* ============ ตั้งค่า (แก้ตรงนี้) ============ */
 const CFG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyUQZt1BFLkD1oeCDGeq-EcYAZelJDDO-RaL43-Zu4gH3NLBrtz_Khw7KM3TuLeMkIX/exec',   // URL ของ Google Apps Script (Web app)
+  PUSH_URL: 'PASTE_WORKER_URL_HERE',          // URL ของ Cloudflare Worker เช่น https://weekly-push.ชื่อ.workers.dev
+  VAPID_PUBLIC: 'PASTE_VAPID_PUBLIC_KEY_HERE',// กุญแจสาธารณะจาก vapid-keygen.html
   DEFAULT_YEAR: 2026,
   ORG: {                                       // ชื่อหน่วยงาน/ห้องการ แสดงเป็นหัวหน้า
     lo: 'ທະນາຄານເຊື້ອພັນ',
-    en: 'Lao Genebank',
+    en: 'Lao genebank',
+    th: '**********'
   },
   USERS: ['ກູ່ຄຳ','ເຂັມຄຳ','ຄຳສອນ','ຄຳປະດິດ','ແກ້ວອຸດອນ','ຄູນ','ບຸນຊູ','ອາລິດສະລາ','ເລ່ເມີ້ນ','ພອນທະວີ'],
   YEARS: [2025,2026,2027,2028,2029,2030]
@@ -99,8 +101,9 @@ const I18N = {
   sec_done:{lo:'1. ສະຫຼຸບຜົນງານທີ່ເຮັດສຳເລັດໃນອາທິດນີ້',en:'1. Accomplishments this week',th:'1. สรุปผลงานที่ทำสำเร็จในสัปดาห์นี้'},
   sec_doing:{lo:'2. ວຽກທີ່ກຳລັງດຳເນີນຢູ່',en:'2. Work in progress',th:'2. งานที่อยู่ระหว่างดำเนินการ'},
   sec_next:{lo:'3. ແຜນການດຳເນີນງານອາທິດຕໍ່ໄປ',en:'3. Plan for next week',th:'3. แผนการดำเนินงานสัปดาห์ถัดไป'},
-  sec_problems:{lo:'4. ບັນຫາ ແລະ ອຸປະສັກ',en:'4. Problems and obstacles',th:'4. ปัญหาและอุปสรรค'},
-  sec_proposals:{lo:'5. ຂໍ້ສະເໜີ',en:'5. Proposals / support needed',th:'5. ข้อเสนอ / สิ่งที่ต้องการให้ช่วยเหลือ'},
+  sec_highlights:{lo:'4. ຈຸດເດັ່ນຂອງການປະຕິບັດວຽກອາທິດນີ້',en:'4. Highlights of this week',th:'4. จุดเด่นของการปฏิบัติงานสัปดาห์นี้'},
+  sec_problems:{lo:'5. ບັນຫາ ແລະ ອຸປະສັກ',en:'5. Problems and obstacles',th:'5. ปัญหาและอุปสรรค'},
+  sec_proposals:{lo:'6. ຂໍ້ສະເໜີ',en:'6. Proposals / support needed',th:'6. ข้อเสนอ / สิ่งที่ต้องการให้ช่วยเหลือ'},
   taskName:{lo:'ຊື່ວຽກ ຫຼື ໂຄງການ',en:'Task / project name',th:'ชื่องาน หรือโครงการ'},
   detailDone:{lo:'ລາຍລະອຽດ ແລະ ຄວາມຄືບໜ້າທີ່ເຮັດແລ້ວ',en:'Details and what has been completed',th:'รายละเอียดและสิ่งที่ทำเสร็จแล้ว'},
   progress:{lo:'ຄວາມຄືບໜ້າ',en:'Progress',th:'ความคืบหน้า'},
@@ -109,6 +112,10 @@ const I18N = {
   high:{lo:'ສູງ',en:'High',th:'สูง'},
   mid:{lo:'ກາງ',en:'Medium',th:'กลาง'},
   low:{lo:'ຕ່ຳ',en:'Low',th:'ต่ำ'},
+  highlightLbl:{lo:'ຈຸດເດັ່ນ',en:'Highlight',th:'จุดเด่น'},
+  highlightPh:{lo:'ອາທິດນີ້ມີຫຍັງເປັນຈຸດເດັ່ນ ຫຼື ສິ່ງທີ່ປະທັບໃຈ',
+               en:'What stood out this week, or what made you proud?',
+               th:'สัปดาห์นี้มีอะไรเป็นจุดเด่น หรือสิ่งที่ประทับใจ'},
   problemLbl:{lo:'ບັນຫາ / ອຸປະສັກ',en:'Problem / obstacle',th:'ปัญหา / อุปสรรค'},
   problemPh:{lo:'ອະທິບາຍບັນຫາ ຫຼື ອຸປະສັກທີ່ພົບ ແລະ ເລື່ອງທີ່ຕ້ອງການໃຫ້ຊ່ວຍຕັດສິນໃຈ',
              en:'Describe the problem or obstacle, and any decision you need',
@@ -134,9 +141,22 @@ const I18N = {
   newReport:{lo:'ສ້າງລາຍງານໃໝ່',en:'New report',th:'สร้างรายงานใหม่'},
   empty:{lo:'ກະລຸນາຕື່ມຢ່າງໜ້ອຍໜຶ່ງລາຍການ',en:'Please fill in at least one item',th:'กรุณากรอกอย่างน้อยหนึ่งรายการ'},
   cfgMissing:{lo:'ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ URL ຂອງ Google Sheet',en:'Google Sheet URL is not configured yet',th:'ยังไม่ได้ตั้งค่า URL ของ Google Sheet'},
+  notifTitle:{lo:'ການແຈ້ງເຕືອນ',en:'Notifications',th:'การแจ้งเตือน'},
+  notifHint:{lo:'ເປີດເພື່ອໃຫ້ມືຖືແຈ້ງເຕືອນທຸກວັນສຸກ ເວລາ 15:30 ວ່າໃຫ້ສົ່ງລາຍງານ',
+             en:'Turn on to get a reminder on your phone every Friday at 3:30 PM',
+             th:'เปิดเพื่อให้มือถือแจ้งเตือนทุกวันศุกร์ เวลา 15:30 ให้ส่งรายงาน'},
+  notifEnable:{lo:'🔔 ເປີດການແຈ້ງເຕືອນ',en:'🔔 Turn on notifications',th:'🔔 เปิดการแจ้งเตือน'},
+  notifOn:{lo:'✓ ເປີດການແຈ້ງເຕືອນແລ້ວ ທຸກວັນສຸກ 15:30',en:'✓ Notifications are on (Fridays 3:30 PM)',th:'✓ เปิดการแจ้งเตือนแล้ว ทุกวันศุกร์ 15:30'},
+  notifDenied:{lo:'ການແຈ້ງເຕືອນຖືກປິດໄວ້ໃນມືຖື ກະລຸນາເປີດໃນການຕັ້ງຄ່າເວັບໄຊ',
+               en:'Notifications are blocked. Please allow them in the site settings.',
+               th:'การแจ้งเตือนถูกปิดไว้ในมือถือ กรุณาอนุญาตในการตั้งค่าเว็บไซต์'},
+  notifUnsupported:{lo:'ອຸປະກອນນີ້ບໍ່ຮອງຮັບການແຈ້ງເຕືອນ (ໃຫ້ຕິດຕັ້ງແອັບຜ່ານ Chrome ກ່ອນ)',
+                    en:'This device does not support notifications (install the app via Chrome first)',
+                    th:'อุปกรณ์นี้ไม่รองรับการแจ้งเตือน (ให้ติดตั้งแอปผ่าน Chrome ก่อน)'},
+  notifFail:{lo:'ເປີດການແຈ້ງເຕືອນບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່',en:'Could not turn on notifications. Please try again.',th:'เปิดการแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่'},
   backLocked:{lo:'ຂໍ້ມູນຖືກບັນທຶກໄວ້ແລ້ວ ບໍ່ສາມາດຍ້ອນກັບໄດ້',en:'Your data is saved. Going back is disabled.',th:'ข้อมูลถูกบันทึกไว้แล้ว ไม่สามารถย้อนกลับได้'}
 };
-const LANGS = [['lo','ລາວ'],['en','EN']];
+const LANGS = [['lo','ລາວ'],['en','EN'],['th','ไทย']];
 
 /* ============ โครงสร้างหมวดข้อมูล ============ */
 const SECTIONS = [
@@ -150,6 +170,8 @@ const SECTIONS = [
     {k:'t',label:'taskName',type:'input'},
     {k:'d',label:'planDetail',type:'textarea'},
     {k:'pr',label:'priority',type:'priority'}]},
+  {key:'highlights', fields:[
+    {k:'d',label:'highlightLbl',ph:'highlightPh',type:'textarea'}]},
   {key:'problems', fields:[
     {k:'d',label:'problemLbl',ph:'problemPh',type:'textarea'}]},
   {key:'proposals', fields:[
@@ -157,9 +179,10 @@ const SECTIONS = [
 ];
 const blank = key => ({
   done:{t:'',d:''}, doing:{t:'',p:''}, next:{t:'',d:'',pr:'mid'},
-  problems:{d:''}, proposals:{d:''}
+  highlights:{d:''}, problems:{d:''}, proposals:{d:''}
 }[key]);
 
+/* ============ ตัวช่วย ============ */
 const $ = s => document.querySelector(s);
 const t = k => (I18N[k] && I18N[k][lang]) || k;
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -176,7 +199,7 @@ function toast(msg){
 
 /* ============ สถานะ ============ */
 let lang = store.get('wr_lang');
-if(!['lo','en'].includes(lang)) lang = 'lo';           // เริ่มต้นเป็นภาษาลาวเสมอ
+if(!['lo','en','th'].includes(lang)) lang = 'lo';           // เริ่มต้นเป็นภาษาลาวเสมอ
 let user = store.get('wr_user') || '';
 if(!CFG.USERS.includes(user)) user = '';
 let screen = user ? 'form' : 'login';
@@ -186,7 +209,7 @@ let busy = false;
 
 function newData(){
   const d = new Date();
-  const o = { week: Math.min(4, Math.ceil(d.getDate()/7)), month: d.getMonth()+1, year: CFG.DEFAULT_YEAR };
+  const o = { week: Math.min(4, Math.floor((d.getDate()-1 + new Date(d.getFullYear(), d.getMonth(), 1).getDay())/7) + 1), month: d.getMonth()+1, year: CFG.DEFAULT_YEAR };
   SECTIONS.forEach(s => o[s.key] = [blank(s.key)]);
   return o;
 }
@@ -278,6 +301,7 @@ function renderForm(){
     </div>
     <div class="saved" id="savedInfo"></div>
     ${SECTIONS.map(sectionHTML).join('')}
+    ${notifCard()}
     <button type="button" class="btn btn-primary" id="submitBtn" data-act="submit">${t('submit')}</button>
     <button type="button" class="btn btn-out" data-act="logout">${t('logout')}</button>
   </div>`;
@@ -355,6 +379,7 @@ app.addEventListener('click', e => {
     if(list.length>1){ list.splice(+b.dataset.i,1); saveDraft(true); render(); }
   }
   else if(act==='submit'){ submit(); }
+  else if(act==='notif'){ enableNotif(); }
   else if(act==='logout'){
     if(!confirm(t('logoutConfirm'))) return;
     saveDraft(true);
@@ -366,6 +391,47 @@ app.addEventListener('click', e => {
   }
 });
 
+/* ============ แจ้งเตือนมือถือ (Web Push) ============ */
+function notifSupported(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function notifState(){
+  if(!notifSupported()) return 'unsupported';
+  if(Notification.permission==='denied') return 'denied';
+  if(Notification.permission==='granted' && store.get('wr_notif_'+user)==='1') return 'on';
+  return 'off';
+}
+function notifCard(){
+  const st = notifState();
+  const msg = {unsupported:t('notifUnsupported'), denied:t('notifDenied'), on:t('notifOn'), off:t('notifHint')}[st];
+  return `<div class="card"><h2>🔔 ${t('notifTitle')}</h2>
+    <p class="sub" style="text-align:left;margin:6px 0 ${st==='off'?'10px':'0'}">${msg}</p>
+    ${st==='off' ? `<button type="button" class="btn btn-add" data-act="notif" style="margin-top:0">${t('notifEnable')}</button>` : ''}</div>`;
+}
+function urlB64ToUint8Array(s){
+  s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s += '=';
+  return Uint8Array.from(atob(s), c => c.charCodeAt(0));
+}
+async function enableNotif(){
+  if(!notifSupported()){ toast(t('notifUnsupported')); return; }
+  if(CFG.PUSH_URL.startsWith('PASTE_') || CFG.VAPID_PUBLIC.startsWith('PASTE_')){ toast(t('cfgMissing')); return; }
+  try{
+    const perm = await Notification.requestPermission();
+    if(perm!=='granted'){ render(); toast(t('notifDenied')); return; }
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:urlB64ToUint8Array(CFG.VAPID_PUBLIC) });
+    const r = await fetch(CFG.PUSH_URL.replace(/\/$/,'') + '/subscribe', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name:user, subscription:sub.toJSON() })
+    });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error || 'failed');
+    store.set('wr_notif_'+user, '1');
+    render();
+  }catch(err){
+    toast(t('notifFail'));
+  }
+}
+
 /* ============ ส่งรายงาน ============ */
 async function submit(){
   if(busy) return;
@@ -373,11 +439,11 @@ async function submit(){
   const payload = {
     name: user, year: +data.year, month: +data.month, week: +data.week, lang,
     done: clean('done'), doing: clean('doing'), next: clean('next'),
-    problems: clean('problems'), proposals: clean('proposals')
+    highlights: clean('highlights'), problems: clean('problems'), proposals: clean('proposals')
   };
   if(!data.sid) data.sid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36)+Math.random().toString(36).slice(2));
   payload.sid = data.sid;
-  const total = ['done','doing','next','problems','proposals'].reduce((n,k)=>n+payload[k].length,0);
+  const total = ['done','doing','next','highlights','problems','proposals'].reduce((n,k)=>n+payload[k].length,0);
   if(!total){ toast(t('empty')); return; }
   if(!confirm(t('confirm'))) return;
   if(CFG.SCRIPT_URL.startsWith('PASTE_')){ toast(t('cfgMissing')); return; }
@@ -401,13 +467,11 @@ async function submit(){
 }
 
 /* ============ เริ่มทำงาน ============ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
 if(user) lockNav();
 render();
-if('serviceWorker' in navigator){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
-  });
-}
 </script>
 </body>
 </html>

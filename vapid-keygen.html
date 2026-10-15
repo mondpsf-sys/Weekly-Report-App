@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VAPID Key Generator</title>
+<style>
+  body{font-family:system-ui,'Noto Sans Thai','Noto Sans Lao',sans-serif;max-width:720px;margin:24px auto;padding:0 16px;color:#1f2937;line-height:1.5}
+  h1{font-size:1.3rem;color:#115e59}
+  button{background:#0f766e;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-size:1rem;font-weight:700;cursor:pointer}
+  label{display:block;margin-top:18px;font-weight:700}
+  textarea{width:100%;box-sizing:border-box;font-family:ui-monospace,Consolas,monospace;font-size:.85rem;padding:10px;border:1.5px solid #d1d5db;border-radius:10px;min-height:70px}
+  .note{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 12px;margin:14px 0;font-size:.92rem}
+  .small{color:#6b7280;font-size:.85rem;margin:4px 0 0}
+</style>
+</head>
+<body>
+<h1>สร้างกุญแจ VAPID สำหรับแจ้งเตือนมือถือ</h1>
+<p>กดปุ่มด้านล่างเพื่อสร้างกุญแจคู่ใหม่ <b>ในเครื่องของคุณเอง</b> (ไม่มีข้อมูลถูกส่งออกไปที่ไหน) ทำครั้งเดียวตอนติดตั้ง</p>
+<div class="note">
+  <b>กุญแจส่วนตัว (Private)</b> เป็นความลับ ห้ามส่งให้ใคร ห้ามใส่ใน GitHub หรือใน index.html<br>
+  ใส่ได้เฉพาะในช่อง <b>Secret</b> ของ Cloudflare Worker เท่านั้น
+</div>
+<button id="go" type="button">สร้างกุญแจใหม่</button>
+
+<label for="pub">1) กุญแจสาธารณะ (Public) → ใส่ใน index.html ช่อง VAPID_PUBLIC และใน Worker ตัวแปร VAPID_PUBLIC_KEY</label>
+<textarea id="pub" readonly></textarea>
+<label for="priv">2) กุญแจส่วนตัว (Private) → ใส่ใน Worker เป็น Secret ชื่อ VAPID_PRIVATE_JWK</label>
+<textarea id="priv" readonly></textarea>
+<p class="small">ถ้ากดสร้างใหม่อีกครั้ง กุญแจเดิมจะใช้ไม่ได้ และสมาชิกต้องกด "เปิดแจ้งเตือน" ใหม่ทุกคน</p>
+
+<script>
+function b64u(bytes){
+  let s=''; new Uint8Array(bytes).forEach(function(x){ s+=String.fromCharCode(x); });
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function fromB64u(s){
+  s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='=';
+  return Uint8Array.from(atob(s), function(c){ return c.charCodeAt(0); });
+}
+async function generate(){
+  const kp = await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'}, true, ['sign','verify']);
+  const jwk = await crypto.subtle.exportKey('jwk', kp.privateKey);
+  // กุญแจสาธารณะรูปแบบ uncompressed point: 0x04 || X(32) || Y(32)
+  const x = fromB64u(jwk.x), y = fromB64u(jwk.y);
+  const raw = new Uint8Array(65); raw[0] = 4; raw.set(x,1); raw.set(y,33);
+  return { pub: b64u(raw), priv: JSON.stringify({x:jwk.x, y:jwk.y, d:jwk.d}) };
+}
+document.getElementById('go').addEventListener('click', async function(){
+  try{
+    const k = await generate();
+    document.getElementById('pub').value = k.pub;
+    document.getElementById('priv').value = k.priv;
+  }catch(e){ alert('สร้างกุญแจไม่สำเร็จ: ' + e); }
+});
+</script>
+</body>
+</html>
