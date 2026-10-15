@@ -74,11 +74,13 @@
 /* ============ ตั้งค่า (แก้ตรงนี้) ============ */
 const CFG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyUQZt1BFLkD1oeCDGeq-EcYAZelJDDO-RaL43-Zu4gH3NLBrtz_Khw7KM3TuLeMkIX/exec',   // URL ของ Google Apps Script (Web app)
+  PUSH_URL: 'PASTE_WORKER_URL_HERE',          // URL ของ Cloudflare Worker เช่น https://weekly-push.ชื่อ.workers.dev
+  VAPID_PUBLIC: 'PASTE_VAPID_PUBLIC_KEY_HERE',// กุญแจสาธารณะจาก vapid-keygen.html
   DEFAULT_YEAR: 2026,
   ORG: {                                       // ชื่อหน่วยงาน/ห้องการ แสดงเป็นหัวหน้า
-    lo: 'ທະນາຄານເຊື້ອພັນ',
-    en: 'Lao genebank',
-    th: '**********'
+    lo: 'ຊື່ຫ້ອງການຂອງທ່ານ',
+    en: 'Your Office Name',
+    th: 'ชื่อหน่วยงานของคุณ'
   },
   USERS: ['ກູ່ຄຳ','ເຂັມຄຳ','ຄຳສອນ','ຄຳປະດິດ','ແກ້ວອຸດອນ','ຄູນ','ບຸນຊູ','ອາລິດສະລາ','ເລ່ເມີ້ນ','ພອນທະວີ'],
   YEARS: [2025,2026,2027,2028,2029,2030]
@@ -398,6 +400,7 @@ function notifState(){
   return 'off';
 }
 function notifCard(){
+  if(CFG.PUSH_URL.startsWith('PASTE_')) return '';   // ยังไม่เปิดใช้แจ้งเตือน → ไม่แสดงการ์ด
   const st = notifState();
   const msg = {unsupported:t('notifUnsupported'), denied:t('notifDenied'), on:t('notifOn'), off:t('notifHint')}[st];
   return `<div class="card"><h2>🔔 ${t('notifTitle')}</h2>

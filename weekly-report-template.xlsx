@@ -1,0 +1,69 @@
+# ระบบแจ้งเตือนมือถือทุกวันศุกร์ 15:30 (Web Push + Cloudflare Worker)
+
+ผลลัพธ์: สมาชิกที่เปิดแอปบน Android (Chrome) แล้วกด "เปิดการแจ้งเตือน" จะได้ข้อความเด้งบนมือถือทุกวันศุกร์ 15:30 เวลาลาว/ไทย
+"ທ່ານໄດ້ເຮັດລາຍງານແລ້ວບໍ? / Have you done your weekly report? / คุณทำรายงานประจำสัปดาห์แล้วหรือยัง?"
+
+ไฟล์ที่เกี่ยวข้อง
+- `vapid-keygen.html` — เครื่องมือสร้างกุญแจ (เปิดใน Chrome ในเครื่องคุณ ทำครั้งเดียว)
+- `worker.js` — โค้ด Cloudflare Worker (วางใน Cloudflare)
+- ในโฟลเดอร์แอป: `sw.js`, `manifest.webmanifest`, `icon-*.png`, `_headers`, `index.html` (ฉบับใหม่) → อัปโหลดขึ้น GitHub
+
+## ขั้นที่ 1 — สร้างกุญแจ
+1. ดับเบิลคลิก `vapid-keygen.html` (เปิดใน Chrome) แล้วกด **สร้างกุญแจใหม่**
+2. จะได้ 2 ค่า: **Public** (เปิดเผยได้) และ **Private** (ลับ ห้ามใส่ใน GitHub/index.html) เก็บหน้านี้ไว้ก่อนจนกว่าจะตั้งค่าเสร็จ
+
+## ขั้นที่ 2 — สร้าง Worker บน Cloudflare
+1. dash.cloudflare.com → เมนูซ้าย **Build → Compute → Workers & Pages** → **Create** → เลือกเริ่มจาก "Hello World" → ตั้งชื่อ เช่น `weekly-push` → Deploy
+2. กด **Edit code** ลบโค้ดเดิมทั้งหมด วางโค้ดจาก `worker.js` → **Deploy**
+3. สร้างที่เก็บข้อมูล: เมนู **Storage & Databases → KV → Create** ตั้งชื่อ `weekly-push-subs`
+4. กลับไปที่ Worker → **Settings → Bindings → Add → KV namespace**
+   - Variable name: `SUBS` (ต้องตรงตัวอักษร)
+   - เลือก namespace `weekly-push-subs`
+5. **Settings → Variables and Secrets → Add** ใส่ 5 ตัว
+
+| ชื่อ | ชนิด | ค่า |
+|---|---|---|
+| `VAPID_PUBLIC_KEY` | Text | กุญแจ Public จากขั้นที่ 1 |
+| `VAPID_PRIVATE_JWK` | **Secret** | กุญแจ Private จากขั้นที่ 1 (ทั้งก้อน `{"x":...}`) |
+| `VAPID_SUBJECT` | Text | `mailto:` ตามด้วยอีเมลของคุณ |
+| `ADMIN_TOKEN` | **Secret** | รหัสลับที่คุณตั้งเอง (ยาวๆ) ใช้ทดสอบ |
+| `ALLOWED_ORIGIN` | Text | `https://weekly-report-app-at2.pages.dev` (ไม่มี `/` ท้าย) |
+
+6. **Settings → Triggers → Cron Triggers → Add** ใส่ `30 8 * * 5`
+   (Cloudflare ใช้เวลา UTC: ศุกร์ 08:30 UTC = ศุกร์ 15:30 เวลาลาว/ไทย)
+   ถ้าอยากเปลี่ยนเวลา: ชั่วโมงไทย − 7 = ชั่วโมง UTC เช่น 16:00 → `0 9 * * 5`
+7. คัดลอก URL ของ Worker (เช่น `https://weekly-push.ชื่อบัญชี.workers.dev`)
+
+## ขั้นที่ 3 — แก้ index.html แล้วอัปโหลดขึ้น GitHub
+ใน `index.html` ส่วน `CFG` แก้ 2 ค่า (และค่าอื่นที่เคยแก้ไว้แล้ว เช่น SCRIPT_URL ให้คงไว้)
+- `PUSH_URL:` ใส่ URL ของ Worker จากขั้นที่ 2 ข้อ 7
+- `VAPID_PUBLIC:` ใส่กุญแจ **Public** จากขั้นที่ 1
+
+แล้วอัปโหลดขึ้น GitHub (ใน VS Code Terminal ในโฟลเดอร์โปรเจกต์):
+```
+git add .
+git commit -m "add push notifications"
+git push
+```
+รอ Cloudflare Pages Deploy เสร็จ (ประมาณ 10-30 วินาที)
+
+## ขั้นที่ 4 — ทดสอบบน Android
+1. เปิด `https://weekly-report-app-at2.pages.dev` ใน Chrome → เลือกชื่อ → เข้าใช้งาน
+2. เลื่อนลงล่างสุดเหนือปุ่มส่งรายงาน จะมีการ์ด "🔔 ການແຈ້ງເຕືອນ" → กด **เปิดการแจ้งเตือน** → กดอนุญาต (Allow)
+3. การ์ดจะเปลี่ยนเป็น "✓ เปิดการแจ้งเตือนแล้ว"
+4. ทดสอบส่งทันที เปิดลิงก์นี้ในเบราว์เซอร์ (แทนที่ค่าในวงเล็บ):
+   `https://(URL ของ Worker)/send-test?token=(ADMIN_TOKEN)&name=(ชื่อของคุณ)`
+   ผลที่ควรได้: หน้าเว็บแสดง `{"ok":true,"result":{"total":1,"sent":1,...}}` และมือถือมีแจ้งเตือนเด้งขึ้น
+5. ติดตั้งเป็นแอป (ไม่บังคับ): เมนู Chrome ⋮ → **Install app / ติดตั้งแอป**
+
+## แจกให้ทีม
+ให้สมาชิกแต่ละคนเปิดแอปบนมือถือ เลือกชื่อ แล้วกด "เปิดการแจ้งเตือน" **คนละ 1 ครั้งต่อเครื่อง**
+
+## ข้อควรรู้
+- **เตือนทุกคนที่เปิดแจ้งเตือน** ไม่ว่าจะส่งรายงานแล้วหรือยัง (เพิ่มให้เตือนเฉพาะคนที่ยังไม่ส่งได้ภายหลัง)
+- **iPhone:** Chrome บน iPhone รับแจ้งเตือนแบบนี้ไม่ได้ ต้องเปิดด้วย Safari → Add to Home Screen (iOS 16.4 ขึ้นไป)
+- เครื่องที่เปิดโหมดประหยัดแบตหรือจำกัดแอปเบื้องหลังอาจได้รับแจ้งเตือนช้ากว่าเวลา
+- ถ้าสมาชิกกดไม่อนุญาตไว้ ต้องไปเปิดที่การตั้งค่าไซต์ใน Chrome (แตะไอคอนข้างช่องที่อยู่ → Permissions → Notifications)
+- ถ้าสร้างกุญแจใหม่ ต้องแก้ทั้ง Worker และ index.html และสมาชิกกดเปิดแจ้งเตือนใหม่ทุกคน
+- `ADMIN_TOKEN` อย่าแชร์ ถ้ารั่วให้เปลี่ยนค่าใหม่ใน Cloudflare
+- Cloudflare แพ็กเกจฟรีรองรับ Worker, KV และ Cron ที่ใช้งานนี้ (ปริมาณน้อยมาก)

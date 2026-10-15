@@ -24,8 +24,9 @@ const CATEGORIES = [
   { key: 'done',      label: '1. ຜົນງານສຳເລັດ',        title: 't', detail: 'd' },
   { key: 'doing',     label: '2. ວຽກກຳລັງດຳເນີນ',      title: 't', detail: 'p' },
   { key: 'next',      label: '3. ແຜນອາທິດຕໍ່ໄປ',       title: 't', detail: 'd', priority: 'pr' },
-  { key: 'problems',  label: '4. ບັນຫາ/ອຸປະສັກ',       title: null, detail: 'd' },
-  { key: 'proposals', label: '5. ຂໍ້ສະເໜີ',            title: null, detail: 'd' }
+  { key: 'highlights', label: '4. ຈຸດເດັ່ນ',           title: null, detail: 'd' },
+  { key: 'problems',  label: '5. ບັນຫາ/ອຸປະສັກ',       title: null, detail: 'd' },
+  { key: 'proposals', label: '6. ຂໍ້ສະເໜີ',            title: null, detail: 'd' }
 ];
 const PRIORITY_LABEL = { high: 'ສູງ', mid: 'ກາງ', low: 'ຕ່ຳ' };
 
